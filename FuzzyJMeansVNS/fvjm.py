@@ -247,7 +247,7 @@ def fj_means(n, c, d, max_iter, E, x, v, w, wt, tempv, m, obj):
     it = iter_
     print("time", t)
     w, wt = Calculate_w(n, c, x, v, m, w, wt, d)
-    return v, w, wt, obj
+    return v, w, wt, obj, t
 
 
 def f_cmeans(E, tt1, tt, n, c, x, v, w, wt, m, d, tempv, it, obj):
@@ -347,22 +347,26 @@ def fit(df, num_of_fuzzy_clusters=2, fuzzy_factor=1.5):
     wt = np.zeros((c, n))
     # ###################################START YOUR MAIN HERE################################################
     v = inite(x, n, d)
-    v, w, wt, tempv, objtmp, tt2 = f_cmeans(E, it1, tt1, n, c, x, v, w, wt, m, d, tempv, it, objtmp)
+    v, w, wt, tempv, objtmp, tt_fcm = f_cmeans(E, it1, tt1, n, c, x, v, w, wt, m, d, tempv, it, objtmp)
     v = inite(x, n, d)
-    v, w, wt, objtmp1 = fj_means(n, c, d, 1000, TERMINATION_THRESHOLD, x, v, w, wt, tempv, FUZZY_FACTOR, objtmp)
+
+    fcm_df_result = pd.DataFrame(data=w, columns=np.arange(1, NUM_OF_CLUSTER + 1))
+    fcm_df_result['Label'] = fcm_df_result.idxmax(axis="columns")
+
+    v, w, wt, objtmp1, tt_fzm = fj_means(n, c, d, 1000, TERMINATION_THRESHOLD, x, v, w, wt, tempv, FUZZY_FACTOR, objtmp)
     v = inite(x, n, d)
     v, w, tt2, objtmp2 = vns1(n,d,x,v,w,wt,tempv)
 
-    obj_str = f'\nObjective functions FCM FJM FJM-VNS = {objtmp, objtmp1, objtmp2}'
-    print('*' * len(obj_str), obj_str)
-    print('*' * len(obj_str))
-    # #######################################################################################################
-    print("below the indices value for Variable Neighborhood Search based FJM ")
+    # obj_str = f'\nObjective functions FCM FJM FJM-VNS = {objtmp, objtmp1, objtmp2}'
+    # print('*' * len(obj_str), obj_str)
+    # print('*' * len(obj_str))
+    # # #######################################################################################################
+    # print("below the indices value for Variable Neighborhood Search based FJM ")
     # Save the membership results
-    df_result = pd.DataFrame(data=w, columns=np.arange(1, NUM_OF_CLUSTER + 1))
-    df_result['label'] = df_result.idxmax(axis="columns")
+    fjm_df_result = pd.DataFrame(data=w, columns=np.arange(1, NUM_OF_CLUSTER + 1))
+    fjm_df_result['Label'] = fjm_df_result.idxmax(axis="columns")
 
-    return df_result
+    return (fcm_df_result, fjm_df_result), (objtmp, objtmp1), (tt_fcm, tt_fzm)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
