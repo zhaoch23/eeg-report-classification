@@ -191,6 +191,39 @@ def plot_2d_charts(origin_embeddings, df_membership, ground_truth, fig_name):
 
     plt.savefig(result_dir + fig_name.replace(" ", "_").replace("=", "_") + ".png")
 
+def plot_2d_with_different_models(model_dfs, save_path):
+    fig, axs = plt.subplots(2, len(model_dfs), figsize=(12, 8))
+
+    for i, (model_name, embedding_and_df) in enumerate(model_dfs.items()):
+        embedding = embedding_and_df[0]
+        df = embedding_and_df[1]
+
+        pca = PCA(n_components=2)
+        x_pca = pca.fit_transform(embedding)
+
+        # Cluster
+        ax = axs[0, i]
+        ax.set_xlabel("PC 1")
+        ax.set_ylabel("PC 2")
+        ax.set_title(f"{model_name} Clusters")
+        scatter = ax.scatter(x_pca[:, 0], x_pca[:, 1], c=df.iloc[:, 2], cmap='viridis', edgecolor='k', s=30)
+        legend = ax.legend(*scatter.legend_elements(), title="Clusters")
+        ax.add_artist(legend)
+
+        # Membership
+        ax = axs[1, i]
+        ax.set_xlabel("PC 1")
+        ax.set_ylabel("PC 2")
+        ax.set_title(f"{model_name} Membership")
+        scatter = ax.scatter(x_pca[:, 0], x_pca[:, 1], c=df.iloc[:, 1], cmap='viridis', edgecolor='k', s=30)
+        cbar = plt.colorbar(scatter, ax=ax)
+        cbar.set_label('Membership')
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    plt.savefig(save_path)
+
+
 def plot_2d_charts_with_mixed(origin_embeddings, df_membership, ground_truth, fig_name):
     """
     Args: 
@@ -221,6 +254,7 @@ def plot_2d_charts_with_mixed(origin_embeddings, df_membership, ground_truth, fi
 
     # Group the the mixed class based on the first 2 columns of the membership matrix
     # Iterate the membership df
+
     for i in range(100):
         if df_membership.iloc[i, 1] > 0.4 and df_membership.iloc[i, 1] < 0.6:
             # Set the label to 0
